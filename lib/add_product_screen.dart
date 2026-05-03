@@ -1,8 +1,9 @@
+import 'dart:convert'; // base64Encode için
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'app_styles.dart';
-import 'db_service.dart';
+import 'api_service.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -18,7 +19,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _descController = TextEditingController();
 
   Uint8List? _selectedImageBytes;
-  //int _selectedCategoryId = 1; // Varsayılan kategori: Aksesuar
+  int _selectedCategoryId = 1; // Varsayılan kategori: Aksesuar
 
   // Galeriden görsel seçme
   Future<void> _pickImage() async {
@@ -43,36 +44,39 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Lütfen bir görsel seçin!'),
-            backgroundColor:
-                Colors.orange, //görsel seçilmemiş ise turuncu bildirim
+            backgroundColor: Colors.orange,
           ),
         );
         return;
       }
 
       try {
-        final conn = await DatabaseService.connect();
+        // Görseli Base64'e çevir
+        final base64Image = base64Encode(_selectedImageBytes!);
 
-        // image_url silindiği için sorgudan çıkarıldı, image_data eklendi
-        await conn.execute(
-          r'INSERT INTO products (title, description, price, category_id, image_data) VALUES ($1, $2, $3, $4, $5)',
-          parameters: [
-            _titleController.text,
-            _descController.text,
-            double.parse(_priceController.text),
-            _selectedCategoryId,
-            _selectedImageBytes,
-          ],
-        );
+        final data = await ApiService.addProduct({
+          'title': _titleController.text,
+          'description': _descController.text,
+          'price': double.parse(_priceController.text),
+          'category_id': _selectedCategoryId,
+          'image_data': base64Image,
+        });
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ürün başarıyla kaydedildi!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
+
+        if (data.containsKey('error')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['error']), backgroundColor: Colors.red),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ürün başarıyla kaydedildi!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),

@@ -1,17 +1,34 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'app_styles.dart';
-import 'chat_screen.dart'; // ✅ YENİ
+import 'chat_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Map<String, dynamic> product;
-  final int currentUserId; // ✅ YENİ
+  final int currentUserId;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
-    required this.currentUserId, // ✅ YENİ
+    required this.currentUserId,
   });
+
+  Uint8List? _decodeImage(dynamic imageData) {
+    if (imageData == null) return null;
+    if (imageData is Uint8List) return imageData;
+    if (imageData is String && imageData.isNotEmpty) {
+      try {
+        // Önce direkt decode dene
+        final bytes = base64Decode(imageData);
+        // Eğer geçerli görsel formatı değilse tekrar decode et
+        return bytes;
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +36,16 @@ class ProductDetailScreen extends StatelessWidget {
     final String price = product['price']?.toString() ?? "0";
     final String description =
         product['description']?.toString() ?? "Açıklama bulunmuyor.";
-    final Uint8List? imageData = product['image_data'] as Uint8List?;
+    final Uint8List? imageBytes = _decodeImage(product['image_data']);
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Görsel
-            imageData != null
+            imageBytes != null
                 ? Image.memory(
-                    imageData,
+                    imageBytes,
                     width: double.infinity,
                     height: 300,
                     fit: BoxFit.cover,
@@ -75,8 +91,6 @@ class ProductDetailScreen extends StatelessWidget {
                     description,
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
-
-                  // ✅ YENİ: Satıcıya Mesaj Gönder butonu
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
@@ -95,7 +109,6 @@ class ProductDetailScreen extends StatelessWidget {
                           return;
                         }
 
-                        // Kullanıcı kendi ürününe mesaj atmasın
                         if (sellerId == currentUserId) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

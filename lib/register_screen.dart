@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'db_service.dart';
+import 'api_service.dart';
 import 'app_styles.dart'; // Stil dosyamızı buraya ekledik
 
 class RegisterScreen extends StatefulWidget {
@@ -19,37 +19,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _saveUser() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final conn = await DatabaseService.connect();
-        int roleId = _selectedRole == 'seller' ? 2 : 3;
-
-        final userResult = await conn.execute(
-          r'INSERT INTO users (email, password, role_id) VALUES ($1, $2, $3) RETURNING id',
-          parameters: [_emailController.text, _passController.text, roleId],
-        );
-
-        final int newUserId = userResult[0][0] as int;
-
-        await conn.execute(
-          r'INSERT INTO user_profiles (user_id, full_name) VALUES ($1, $2)',
-          parameters: [newUserId, _nameController.text],
+        final data = await ApiService.register(
+          _nameController.text,
+          _emailController.text,
+          _passController.text,
+          _selectedRole,
         );
 
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kayıt Başarılı!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context); // Kayıttan sonra login'e döndür
-      } catch (e) {
-        String errorMsg = "Bir hata oluştu.";
-        if (e.toString().contains("users_email_key")) {
-          errorMsg = "Bu e-posta adresi zaten kayıtlı!";
+        if (data.containsKey('error')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['error']), backgroundColor: Colors.red),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Kayıt Başarılı!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
         }
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Bağlantı hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'app_styles.dart';
-import 'db_service.dart';
+import 'api_service.dart';
 import 'edit_product_screen.dart';
 import 'product_detail_screen.dart';
-import 'inbox_screen.dart'; // ✅ YENİ
+import 'inbox_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,50 +32,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchProducts() async {
-    final conn = await DatabaseService.connect();
-
-    String query = '''
-      SELECT p.id, p.title, p.price, p.image_data, p.description,
-             p.seller_id, up.full_name AS seller_name
-      FROM products p
-      LEFT JOIN user_profiles up ON up.user_id = p.seller_id
-      WHERE 1=1
-    ''';
-    List<dynamic> params = [];
-
-    if (_currentSearch.isNotEmpty) {
-      params.add('%$_currentSearch%');
-      query += ' AND p.title ILIKE \$${params.length}';
+    try {
+      final products = await ApiService.getProducts(
+        search: _currentSearch.isNotEmpty ? _currentSearch : null,
+        categoryId: _selectedCategoryId,
+      );
+      return products.map((p) => Map<String, dynamic>.from(p)).toList();
+    } catch (e) {
+      throw Exception('Ürünler yüklenemedi: $e');
     }
-
-    if (_selectedCategoryId != null) {
-      params.add(_selectedCategoryId);
-      query += ' AND p.category_id = \$${params.length}';
-    }
-
-    query += ' ORDER BY p.id DESC';
-
-    final result = await conn.execute(query, parameters: params);
-
-    return result
-        .map(
-          (row) => {
-            'id': row[0],
-            'title': row[1],
-            'price': row[2],
-            'image_data': row[3],
-            'description': row[4],
-            'seller_id': row[5],
-            'seller_name': row[6],
-          },
-        )
-        .toList();
   }
 
   Future<void> deleteProduct(int id) async {
-    final conn = await DatabaseService.connect();
-    await conn.execute(r'DELETE FROM products WHERE id = $1', parameters: [id]);
+    await ApiService.deleteProduct(id);
     if (mounted) setState(() {});
+  }
+
+  Uint8List? _decodeImage(dynamic imageData) {
+    if (imageData == null) return null;
+    if (imageData is Uint8List) return imageData;
+    if (imageData is String && imageData.isNotEmpty) {
+      try {
+        // Önce direkt decode dene
+        final bytes = base64Decode(imageData);
+        // Eğer geçerli görsel formatı değilse tekrar decode et
+        return bytes;
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
   }
 
   @override
@@ -101,7 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppStyles.primaryGreen,
         foregroundColor: Colors.white,
         actions: [
-          // ✅ YENİ: Mesaj kutusu ikonu
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline),
             onPressed: () {
@@ -121,7 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // ARAMA ÇUBUĞU
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -142,7 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // KATEGORİ FİLTRELEME CHIPS
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -159,7 +143,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 10),
 
-          // ÜRÜN LİSTESİ
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
               future: _fetchProducts(),
@@ -262,6 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
     int? sellerId,
     String? sellerName,
   ) {
+    final imageBytes = _decodeImage(imageData);
+
     final Map<String, dynamic> productData = {
       'id': id,
       'title': title,
@@ -282,18 +267,20 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: imageData != null
+                child: imageBytes != null
                     ? Image.memory(
-                        imageData as Uint8List,
+                        imageBytes,
                         fit: BoxFit.cover,
                         width: double.infinity,
                       )
                     : Container(
                         color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.image,
-                          size: 40,
-                          color: Colors.grey,
+                        child: const Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
               ),

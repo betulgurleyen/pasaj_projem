@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_styles.dart';
-import 'db_service.dart';
+import 'api_service.dart'; // db_service yerine bu
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,44 +17,26 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final conn = await DatabaseService.connect();
-
-        final result = await conn.execute(
-          r'''
-          SELECT u.id, r.role_name, p.full_name 
-          FROM users u 
-          JOIN roles r ON u.role_id = r.id 
-          JOIN user_profiles p ON u.id = p.user_id
-          WHERE u.email = $1 AND u.password = $2
-          ''',
-          parameters: [_emailController.text, _passController.text],
+        final data = await ApiService.login(
+          _emailController.text,
+          _passController.text,
         );
 
         if (!mounted) return;
 
-        if (result.isEmpty) {
+        if (data.containsKey('error')) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('E-posta veya şifre hatalı!'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(data['error']), backgroundColor: Colors.red),
           );
         } else {
-          // ✅ DEĞİŞİKLİK: userId de alınıyor
-          final int userId = result[0][0] as int;
-          final String role = result[0][1] as String;
-          final String fullName = result[0][2] as String;
-
-          // ✅ DEĞİŞİKLİK: Map olarak gönderiliyor
           Navigator.pushReplacementNamed(
             context,
             '/home',
-            arguments: {'role': role, 'userId': userId},
+            arguments: {'role': data['role'], 'userId': data['userId']},
           );
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Hoş geldin, $fullName!'),
+              content: Text('Hoş geldin, ${data['fullName']}!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -70,12 +52,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // build metodu aynı kalıyor, sadece _handleLogin değişti
   @override
   Widget build(BuildContext context) {
+    // mevcut build kodun aynen kalacak
     return Scaffold(
       body: Row(
         children: [
-          // SOL PANEL
           Expanded(
             flex: 1,
             child: Container(
@@ -96,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    "Güvenli ve sorunsuz bir ortamda dünyanın dört bir yanındaki alıcılar ve satıcılarla bağlantı kurun..",
+                    "Güvenli ve sorunsuz bir ortamda bağlantı kurun..",
                     style: TextStyle(color: Colors.white70, fontSize: 18),
                   ),
                   const Spacer(),
@@ -111,8 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
-          // SAĞ PANEL
           Expanded(
             flex: 1,
             child: Container(
