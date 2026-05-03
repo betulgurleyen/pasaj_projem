@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'db_service.dart';
+import 'api_service.dart';
 import 'app_styles.dart';
-import 'package:postgres/postgres.dart';
 
 class ChatScreen extends StatefulWidget {
   final int currentUserId;
@@ -21,85 +20,50 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final _db = DatabaseService();
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
 
   List<Map<String, dynamic>> _messages = [];
-  StreamSubscription<Map<String, dynamic>>? _sub;
   bool _loading = true;
   bool _sending = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    await _loadHistory();
-    _subscribeToLive();
-  }
-
-  Future<void> _loadHistory() async {
-    final msgs = await _db.getMessages(
-      userId1: widget.currentUserId,
-      userId2: widget.otherUserId,
-    );
-
-    // ✅ YENİ: Bana gelen mesajları okundu olarak işaretle
-    await _markAsRead();
-
-    if (mounted) {
-      setState(() {
-        _messages = msgs;
-        _loading = false;
-      });
-      _scrollToBottom();
-    }
-  }
-
-  Future<void> _markAsRead() async {
-    final conn = await DatabaseService.connect();
-    await conn.execute(
-      Sql.named(
-        'UPDATE messages SET is_read = true '
-        'WHERE receiver_id = @me AND sender_id = @other AND is_read = false',
-      ),
-      parameters: {'me': widget.currentUserId, 'other': widget.otherUserId},
-    );
-  }
-
-  void _subscribeToLive() {
-    _sub = _db.listenForMessages().listen((data) {
-      final sender = data['sender_id'];
-      final receiver = data['receiver_id'];
-
-      final belongs =
-          (sender == widget.currentUserId && receiver == widget.otherUserId) ||
-          (sender == widget.otherUserId && receiver == widget.currentUserId);
-
-      // Kendi gönderdiğimiz mesaj zaten optimistic olarak eklendi, tekrar ekleme
-      final alreadyAdded = sender == widget.currentUserId;
-
-      if (belongs && !alreadyAdded && mounted) {
-        setState(() => _messages.add(data));
-        _scrollToBottom();
-      }
+    _loadMessages();
+    // Her 3 saniyede bir yeni mesaj kontrol et
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _loadMessages(silent: true);
     });
+  }
+
+  Future<void> _loadMessages({bool silent = false}) async {
+    try {
+      final msgs = await ApiService.getMessages(widget.otherUserId);
+      if (mounted) {
+        setState(() {
+          _messages = msgs.map((m) => Map<String, dynamic>.from(m)).toList();
+          if (!silent) _loading = false;
+        });
+        if (!silent) _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted && !silent) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   Future<void> _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty || _sending) return;
 
-    // Optimistic UI: gönderilmeden önce ekrana yansıt
     final optimistic = {
       'sender_id': widget.currentUserId,
       'receiver_id': widget.otherUserId,
       'content': text,
       'created_at': DateTime.now().toIso8601String(),
-      'sender_name': 'Sen',
     };
 
     setState(() {
@@ -109,11 +73,15 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
     _scrollToBottom();
 
-    await _db.sendMessage(
-      senderId: widget.currentUserId,
-      receiverId: widget.otherUserId,
-      content: text,
-    );
+    try {
+      await ApiService.sendMessage(widget.otherUserId, text);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Mesaj gönderilemedi: $e')));
+      }
+    }
 
     if (mounted) setState(() => _sending = false);
   }
@@ -132,7 +100,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _pollTimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -181,7 +149,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           itemBuilder: (context, i) {
                             final msg = _messages[i];
                             final isMe =
-                                msg['sender_id'] == widget.currentUserId;
+                                msg['sender_id'] == widget.currentUserId ||
+                                msg['sender_id'].toString() ==
+                                    widget.currentUserId.toString();
                             return _Bubble(
                               content: msg['content']?.toString() ?? '',
                               isMe: isMe,
@@ -200,8 +170,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-
-// ── Mesaj baloncuğu ──────────────────────────────────────────
 
 class _Bubble extends StatelessWidget {
   final String content;
@@ -269,8 +237,6 @@ class _Bubble extends StatelessWidget {
     );
   }
 }
-
-// ── Giriş çubuğu ────────────────────────────────────────────
 
 class _InputBar extends StatelessWidget {
   final TextEditingController controller;

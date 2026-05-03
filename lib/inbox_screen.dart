@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_styles.dart';
-import 'db_service.dart';
+import 'api_service.dart';
 import 'chat_screen.dart';
-import 'package:postgres/postgres.dart';
 
 class InboxScreen extends StatefulWidget {
   final int currentUserId;
@@ -14,43 +13,8 @@ class InboxScreen extends StatefulWidget {
 }
 
 class _InboxScreenState extends State<InboxScreen> {
-  // Kullanıcının konuştuğu kişileri getir (her kişiden son mesaj)
-  Future<List<Map<String, dynamic>>> _fetchConversations() async {
-    final conn = await DatabaseService.connect();
-
-    final result = await conn.execute(
-      Sql.named('''
-        SELECT DISTINCT ON (other_id)
-          other_id,
-          other_name,
-          last_message,
-          last_time,
-          unread_count
-        FROM (
-          SELECT
-            CASE 
-              WHEN m.sender_id = @uid THEN m.receiver_id 
-              ELSE m.sender_id 
-            END AS other_id,
-            up.full_name AS other_name,
-            m.content AS last_message,
-            m.created_at AS last_time,
-            COUNT(CASE WHEN m.is_read = false AND m.receiver_id = @uid THEN 1 END)
-              OVER (PARTITION BY 
-                CASE WHEN m.sender_id = @uid THEN m.receiver_id ELSE m.sender_id END
-              ) AS unread_count
-          FROM messages m
-          JOIN user_profiles up ON up.user_id = 
-            CASE WHEN m.sender_id = @uid THEN m.receiver_id ELSE m.sender_id END
-          WHERE m.sender_id = @uid OR m.receiver_id = @uid
-          ORDER BY m.created_at DESC
-        ) sub
-        ORDER BY other_id, last_time DESC
-      '''),
-      parameters: {'uid': widget.currentUserId},
-    );
-
-    return result.map((row) => row.toColumnMap()).toList();
+  Future<List<dynamic>> _fetchConversations() async {
+    return await ApiService.getInbox();
   }
 
   @override
@@ -61,7 +25,7 @@ class _InboxScreenState extends State<InboxScreen> {
         backgroundColor: AppStyles.primaryGreen,
         foregroundColor: Colors.white,
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<dynamic>>(
         future: _fetchConversations(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -93,7 +57,9 @@ class _InboxScreenState extends State<InboxScreen> {
             separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
             itemBuilder: (context, index) {
               final conv = conversations[index];
-              final otherId = conv['other_id'] as int;
+              final otherId = conv['other_id'] is int
+                  ? conv['other_id']
+                  : int.tryParse(conv['other_id'].toString()) ?? 0;
               final otherName = conv['other_name']?.toString() ?? 'Kullanıcı';
               final lastMessage = conv['last_message']?.toString() ?? '';
               final unread = int.tryParse(conv['unread_count'].toString()) ?? 0;
@@ -155,7 +121,6 @@ class _InboxScreenState extends State<InboxScreen> {
                       ),
                     ),
                   );
-                  // Dönünce listeyi yenile
                   setState(() {});
                 },
               );

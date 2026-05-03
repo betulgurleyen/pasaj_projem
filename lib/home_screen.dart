@@ -53,10 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (imageData is Uint8List) return imageData;
     if (imageData is String && imageData.isNotEmpty) {
       try {
-        // Önce direkt decode dene
-        final bytes = base64Decode(imageData);
-        // Eğer geçerli görsel formatı değilse tekrar decode et
-        return bytes;
+        return base64Decode(imageData);
       } catch (_) {
         return null;
       }
@@ -88,17 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppStyles.primaryGreen,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => InboxScreen(currentUserId: currentUserId),
-                ),
-              );
-            },
-          ),
+          _UnreadBadge(currentUserId: currentUserId),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => Navigator.pushReplacementNamed(context, '/'),
@@ -377,6 +364,83 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Okunmamış mesaj bildirimi ────────────────────────────────
+
+class _UnreadBadge extends StatefulWidget {
+  final int currentUserId;
+  const _UnreadBadge({required this.currentUserId});
+
+  @override
+  State<_UnreadBadge> createState() => _UnreadBadgeState();
+}
+
+class _UnreadBadgeState extends State<_UnreadBadge> {
+  int _unreadCount = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUnread();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _checkUnread());
+  }
+
+  Future<void> _checkUnread() async {
+    try {
+      final conversations = await ApiService.getInbox();
+      int total = 0;
+      for (final conv in conversations) {
+        total += int.tryParse(conv['unread_count'].toString()) ?? 0;
+      }
+      if (mounted) setState(() => _unreadCount = total);
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.chat_bubble_outline),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    InboxScreen(currentUserId: widget.currentUserId),
+              ),
+            );
+            _checkUnread();
+          },
+        ),
+        if (_unreadCount > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: CircleAvatar(
+              radius: 9,
+              backgroundColor: AppStyles.accentPeach,
+              child: Text(
+                '$_unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

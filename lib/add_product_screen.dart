@@ -1,4 +1,4 @@
-import 'dart:convert'; // base64Encode için
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,25 +19,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _descController = TextEditingController();
 
   Uint8List? _selectedImageBytes;
-  int _selectedCategoryId = 1; // Varsayılan kategori: Aksesuar
+  int _selectedCategoryId = 1;
 
-  // Galeriden görsel seçme
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 50, // Performans için %50 sıkıştırma
+      imageQuality: 50,
     );
 
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() {
-        _selectedImageBytes = bytes; //seçilen görseli kaydediyor.
+        _selectedImageBytes = bytes;
       });
     }
   }
 
-  // Ürünü Veritabanına Kaydetme
   Future<void> _addProduct() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedImageBytes == null) {
@@ -51,7 +49,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
       }
 
       try {
-        // Görseli Base64'e çevir
         final base64Image = base64Encode(_selectedImageBytes!);
 
         final data = await ApiService.addProduct({
@@ -87,7 +84,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //ekran tasarım kısmı (sol form paneli)
     return Scaffold(
       backgroundColor: AppStyles.softenerBlue,
       appBar: AppBar(title: const Text("Ürün Yönetim Paneli")),
@@ -128,7 +124,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       onTap: _pickImage,
                       child: Container(
                         width: double.infinity,
-                        height: 50,
+                        height: 180,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
