@@ -173,6 +173,11 @@ class _AdminScreenState extends State<AdminScreen>
             icon: const Icon(Icons.logout),
             onPressed: () => Navigator.pushReplacementNamed(context, '/'),
           ),
+          IconButton(
+            icon: const Icon(Icons.assessment),
+            onPressed: () => Navigator.pushNamed(context, '/reports'),
+            tooltip: 'Raporlar',
+          ),
         ],
         bottom: TabBar(
           controller: _tabController,

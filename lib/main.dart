@@ -5,6 +5,7 @@ import 'home_screen.dart';
 import 'app_styles.dart';
 import 'add_product_screen.dart';
 import 'admin_screen.dart';
+import 'reports_screen.dart';
 
 void main() {
   runApp(
@@ -18,6 +19,7 @@ void main() {
         '/home': (context) => const HomeScreen(),
         '/add_product': (context) => AddProductScreen(),
         '/admin': (context) => const AdminScreen(),
+        '/reports': (context) => const ReportsScreen(),
       },
     ),
   );
