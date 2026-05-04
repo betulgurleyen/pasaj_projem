@@ -86,6 +86,199 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: Colors.white,
         actions: [
           _UnreadBadge(currentUserId: currentUserId),
+          PopupMenuButton<int?>(
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Kategoriler',
+            onSelected: (value) {
+              setState(() {
+                _selectedCategoryId = value;
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: null,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.all_inclusive,
+                      color: _selectedCategoryId == null
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Hepsi',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == null
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == null
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 1,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.watch,
+                      color: _selectedCategoryId == 1
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Aksesuar',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == 1
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == 1
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 2,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.diamond,
+                      color: _selectedCategoryId == 2
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Doğal Taş',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == 2
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == 2
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 3,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.palette,
+                      color: _selectedCategoryId == 3
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tasarım',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == 3
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == 3
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 4,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.checkroom,
+                      color: _selectedCategoryId == 4
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Giyim',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == 4
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == 4
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 5,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.home,
+                      color: _selectedCategoryId == 5
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Ev Dekorasyon',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == 5
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == 5
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 6,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.devices,
+                      color: _selectedCategoryId == 6
+                          ? AppStyles.accentPeach
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Elektronik',
+                      style: TextStyle(
+                        fontWeight: _selectedCategoryId == 6
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedCategoryId == 6
+                            ? AppStyles.accentPeach
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => Navigator.pushReplacementNamed(context, '/'),
@@ -111,28 +304,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
-            ),
-          ),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _buildCategoryChip("Hepsi", null),
-                const SizedBox(width: 8),
-                _buildCategoryChip("Aksesuar", 1),
-                const SizedBox(width: 8),
-                _buildCategoryChip("Doğal Taş", 2),
-                const SizedBox(width: 8),
-                _buildCategoryChip("Tasarım", 3),
-                const SizedBox(width: 8),
-                _buildCategoryChip("Giyim", 4),
-                const SizedBox(width: 8),
-                _buildCategoryChip("Ev Dekorasyon", 5),
-                const SizedBox(width: 8),
-                _buildCategoryChip("Elektronik", 6),
-              ],
             ),
           ),
 
@@ -210,23 +381,6 @@ class _HomeScreenState extends State<HomeScreen> {
               foregroundColor: Colors.white,
             )
           : null,
-    );
-  }
-
-  Widget _buildCategoryChip(String label, int? id) {
-    final bool isSelected = _selectedCategoryId == id;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _selectedCategoryId = id;
-        });
-      },
-      selectedColor: AppStyles.primaryGreen,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : AppStyles.textDeepBlue,
-      ),
     );
   }
 
