@@ -24,6 +24,18 @@ class ApiService {
     return jsonDecode(res.body);
   }
 
+  static Future<Map<String, dynamic>> updateUserRole(
+    int userId,
+    String role,
+  ) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/admin/users/$userId/role'),
+      headers: _headers,
+      body: jsonEncode({'role_name': role}),
+    );
+    return jsonDecode(res.body);
+  }
+
   static Future<List<dynamic>> getAdminUsers() async {
     final res = await http.get(
       Uri.parse('$baseUrl/admin/users'),

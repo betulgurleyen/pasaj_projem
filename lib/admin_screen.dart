@@ -142,6 +142,46 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
+  Future<void> _changeUserRole(int id, String name, String newRole) async {
+    final roleText = newRole == 'seller' ? 'satıcı' : 'misafir';
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Rol Değiştir'),
+        content: Text('$name kullanıcısı $roleText yapılacak. Emin misiniz?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppStyles.accentPeach,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Onayla', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final result = await ApiService.updateUserRole(id, newRole);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? result['error'] ?? ''),
+            backgroundColor: result.containsKey('error')
+                ? Colors.red
+                : Colors.green,
+          ),
+        );
+        _loadUsers();
+        _loadStats();
+      }
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -158,6 +198,11 @@ class _AdminScreenState extends State<AdminScreen>
         foregroundColor: Colors.white,
         actions: [
           IconButton(
+            icon: const Icon(Icons.assessment),
+            onPressed: () => Navigator.pushNamed(context, '/reports'),
+            tooltip: 'Raporlar',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
@@ -172,11 +217,6 @@ class _AdminScreenState extends State<AdminScreen>
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => Navigator.pushReplacementNamed(context, '/'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.assessment),
-            onPressed: () => Navigator.pushNamed(context, '/reports'),
-            tooltip: 'Raporlar',
           ),
         ],
         bottom: TabBar(
@@ -203,8 +243,6 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
   }
-
-  // ── ÖZET ──────────────────────────────────────────────────
 
   Widget _buildStatsTab() {
     if (_loadingStats) return const Center(child: CircularProgressIndicator());
@@ -290,8 +328,6 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  // ── KULLANICILAR ──────────────────────────────────────────
-
   Widget _buildUsersTab() {
     if (_loadingUsers) return const Center(child: CircularProgressIndicator());
     if (_users.isEmpty)
@@ -326,6 +362,7 @@ class _AdminScreenState extends State<AdminScreen>
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Rol badge
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -352,7 +389,24 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                 ),
-                if (role != 'admin')
+                if (role != 'admin') ...[
+                  // Rol değiştirme butonu
+                  IconButton(
+                    icon: Icon(
+                      role == 'seller' ? Icons.person_off : Icons.store,
+                      color: role == 'seller' ? Colors.orange : Colors.blue,
+                      size: 20,
+                    ),
+                    tooltip: role == 'seller'
+                        ? 'Satıcılığı Kaldır'
+                        : 'Satıcı Yap',
+                    onPressed: () => _changeUserRole(
+                      user['id'],
+                      user['full_name']?.toString() ?? '',
+                      role == 'seller' ? 'guest' : 'seller',
+                    ),
+                  ),
+                  // Sil butonu
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                     onPressed: () => _deleteUser(
@@ -360,6 +414,7 @@ class _AdminScreenState extends State<AdminScreen>
                       user['full_name']?.toString() ?? '',
                     ),
                   ),
+                ],
               ],
             ),
           );
@@ -367,8 +422,6 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
   }
-
-  // ── ÜRÜNLER ──────────────────────────────────────────────
 
   Widget _buildProductsTab() {
     if (_loadingProducts)
@@ -422,8 +475,6 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
   }
-
-  // ── MESAJLAR ──────────────────────────────────────────────
 
   Widget _buildMessagesTab() {
     if (_loadingMessages)
