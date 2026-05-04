@@ -29,9 +29,10 @@ class _LoginScreenState extends State<LoginScreen> {
             SnackBar(content: Text(data['error']), backgroundColor: Colors.red),
           );
         } else {
+          final String route = data['role'] == 'admin' ? '/admin' : '/home';
           Navigator.pushReplacementNamed(
             context,
-            '/home',
+            route,
             arguments: {'role': data['role'], 'userId': data['userId']},
           );
           ScaffoldMessenger.of(context).showSnackBar(

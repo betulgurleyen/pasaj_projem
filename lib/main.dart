@@ -4,6 +4,7 @@ import 'login_screen.dart';
 import 'home_screen.dart';
 import 'app_styles.dart';
 import 'add_product_screen.dart';
+import 'admin_screen.dart';
 
 void main() {
   runApp(
@@ -16,6 +17,7 @@ void main() {
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
         '/add_product': (context) => AddProductScreen(),
+        '/admin': (context) => const AdminScreen(),
       },
     ),
   );
