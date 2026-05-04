@@ -14,6 +14,55 @@ class ApiService {
     if (_token != null) 'Authorization': 'Bearer $_token',
   };
 
+  // ── ADMIN ──────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> getAdminStats() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/admin/stats'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<List<dynamic>> getAdminUsers() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/admin/users'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<List<dynamic>> getAdminProducts() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/admin/products'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<List<dynamic>> getAdminMessages() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/admin/messages'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> deleteAdminUser(int id) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/admin/users/$id'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> deleteAdminProduct(int id) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/admin/products/$id'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
   // ── AUTH ──────────────────────────────────────────
 
   static Future<Map<String, dynamic>> login(
