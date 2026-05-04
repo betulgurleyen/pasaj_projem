@@ -48,6 +48,22 @@ class ApiService {
     return jsonDecode(res.body);
   }
 
+  static Future<List<dynamic>> getSalesReport() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/admin/reports/sales'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<List<dynamic>> getUsersReport() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/admin/reports/users'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
   static Future<Map<String, dynamic>> deleteAdminUser(int id) async {
     final res = await http.delete(
       Uri.parse('$baseUrl/admin/users/$id'),

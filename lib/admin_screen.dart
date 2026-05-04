@@ -169,6 +169,10 @@ class _AdminScreenState extends State<AdminScreen>
               _loadAll();
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+          ),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -206,37 +210,42 @@ class _AdminScreenState extends State<AdminScreen>
         children: [
           Text('Genel Bakış', style: AppStyles.titleStyle),
           const SizedBox(height: 20),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.5,
+          Row(
             children: [
-              _statCard(
-                'Toplam Kullanıcı',
-                _stats['totalUsers']?.toString() ?? '0',
-                Icons.people,
-                Colors.blue,
+              Expanded(
+                child: _statCard(
+                  'Toplam Kullanıcı',
+                  _stats['totalUsers']?.toString() ?? '0',
+                  Icons.people,
+                  Colors.blue,
+                ),
               ),
-              _statCard(
-                'Toplam Ürün',
-                _stats['totalProducts']?.toString() ?? '0',
-                Icons.shopping_bag,
-                AppStyles.accentPeach,
+              const SizedBox(width: 12),
+              Expanded(
+                child: _statCard(
+                  'Toplam Ürün',
+                  _stats['totalProducts']?.toString() ?? '0',
+                  Icons.shopping_bag,
+                  AppStyles.accentPeach,
+                ),
               ),
-              _statCard(
-                'Toplam Mesaj',
-                _stats['totalMessages']?.toString() ?? '0',
-                Icons.message,
-                Colors.green,
+              const SizedBox(width: 12),
+              Expanded(
+                child: _statCard(
+                  'Toplam Mesaj',
+                  _stats['totalMessages']?.toString() ?? '0',
+                  Icons.message,
+                  Colors.green,
+                ),
               ),
-              _statCard(
-                'Satıcı Sayısı',
-                _stats['totalSellers']?.toString() ?? '0',
-                Icons.store,
-                AppStyles.primaryGreen,
+              const SizedBox(width: 12),
+              Expanded(
+                child: _statCard(
+                  'Satıcı Sayısı',
+                  _stats['totalSellers']?.toString() ?? '0',
+                  Icons.store,
+                  AppStyles.primaryGreen,
+                ),
               ),
             ],
           ),
@@ -250,16 +259,16 @@ class _AdminScreenState extends State<AdminScreen>
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
@@ -267,7 +276,7 @@ class _AdminScreenState extends State<AdminScreen>
             const SizedBox(height: 4),
             Text(
               title,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
               textAlign: TextAlign.center,
             ),
           ],

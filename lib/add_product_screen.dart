@@ -204,6 +204,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                     value: 3,
                                     child: Text("Tasarım"),
                                   ),
+                                  DropdownMenuItem(
+                                    value: 4,
+                                    child: Text("Giyim"),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 5,
+                                    child: Text("Ev Dekorasyon"),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 6,
+                                    child: Text("Elektronik"),
+                                  ),
                                 ],
                                 onChanged: (val) =>
                                     setState(() => _selectedCategoryId = val!),
