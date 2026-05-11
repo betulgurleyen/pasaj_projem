@@ -323,4 +323,30 @@ class ApiService {
       headers: _headers,
     );
   }
+
+  static Future<List<dynamic>> getOrdersReport({
+    String? startDate,
+    String? endDate,
+    String? buyerName,
+    String? sellerName,
+    String? status,
+    String? productTitle,
+  }) async {
+    final params = <String>[];
+    if (startDate != null) params.add('start_date=$startDate');
+    if (endDate != null) params.add('end_date=$endDate');
+    if (buyerName != null && buyerName.isNotEmpty)
+      params.add('buyer_name=$buyerName');
+    if (sellerName != null && sellerName.isNotEmpty)
+      params.add('seller_name=$sellerName');
+    if (status != null && status.isNotEmpty) params.add('status=$status');
+    if (productTitle != null && productTitle.isNotEmpty)
+      params.add('product_title=$productTitle');
+
+    String url = '$baseUrl/admin/reports/orders';
+    if (params.isNotEmpty) url += '?${params.join('&')}';
+
+    final res = await http.get(Uri.parse(url), headers: _headers);
+    return jsonDecode(res.body);
+  }
 }
