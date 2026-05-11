@@ -347,6 +347,8 @@ class ApiService {
     if (params.isNotEmpty) url += '?${params.join('&')}';
 
     final res = await http.get(Uri.parse(url), headers: _headers);
-    return jsonDecode(res.body);
+    final decoded = jsonDecode(res.body);
+    if (decoded is List) return decoded;
+    return [];
   }
 }
