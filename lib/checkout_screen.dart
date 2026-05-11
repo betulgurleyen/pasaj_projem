@@ -106,15 +106,58 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // Kargo Bilgileri
               _sectionTitle('Kargo Bilgileri', Icons.local_shipping),
               const SizedBox(height: 12),
-              _buildInput('Ad Soyad', _nameController, Icons.person),
+              _buildInput(
+                'Ad Soyad',
+                _nameController,
+                Icons.person,
+                validator: (v) {
+                  if (v!.isEmpty) return 'Ad Soyad gerekli';
+                  if (RegExp(r'[0-9]').hasMatch(v))
+                    return 'Ad Soyad rakam içeremez';
+                  return null;
+                },
+              ),
               _buildInput(
                 'Telefon',
                 _phoneController,
                 Icons.phone,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                validator: (v) {
+                  if (v!.isEmpty) return 'Telefon gerekli';
+                  if (v.length < 10) return 'Geçerli telefon numarası giriniz';
+                  return null;
+                },
               ),
-              _buildInput('Şehir', _cityController, Icons.location_city),
-              _buildInput('Adres', _addressController, Icons.home, maxLines: 3),
+              _buildInput(
+                'Şehir',
+                _cityController,
+                Icons.location_city,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[a-zA-ZğüşıöçĞÜŞİÖÇ ]'),
+                  ),
+                ],
+                validator: (v) {
+                  if (v!.isEmpty) return 'Şehir gerekli';
+                  if (RegExp(r'[0-9]').hasMatch(v))
+                    return 'Şehir rakam içeremez';
+                  return null;
+                },
+              ),
+              _buildInput(
+                'Adres',
+                _addressController,
+                Icons.home,
+                maxLines: 3,
+                validator: (v) {
+                  if (v!.isEmpty) return 'Adres gerekli';
+                  return null;
+                },
+              ),
 
               const SizedBox(height: 24),
 
@@ -179,7 +222,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 'Kart Üzerindeki İsim',
                 _cardHolderController,
                 Icons.person,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[a-zA-ZğüşıöçĞÜŞİÖÇ ]'),
+                  ),
+                ],
                 onChanged: (_) => setState(() {}),
+                validator: (v) {
+                  if (v!.isEmpty) return 'Kart sahibi adı gerekli';
+                  if (RegExp(r'[0-9]').hasMatch(v))
+                    return 'İsim rakam içeremez';
+                  return null;
+                },
               ),
               _buildInput(
                 'Kart Numarası',
