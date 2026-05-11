@@ -6,6 +6,10 @@ import 'app_styles.dart';
 import 'add_product_screen.dart';
 import 'admin_screen.dart';
 import 'reports_screen.dart';
+import 'cart_screen.dart';
+import 'checkout_screen.dart';
+import 'notifications_screen.dart';
+import 'orders_screen.dart';
 
 void main() {
   runApp(
@@ -20,6 +24,10 @@ void main() {
         '/add_product': (context) => AddProductScreen(),
         '/admin': (context) => const AdminScreen(),
         '/reports': (context) => const ReportsScreen(),
+        '/cart': (context) => const CartScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
+        '/notifications': (context) => const NotificationsScreen(),
+        '/orders': (context) => const OrdersScreen(),
       },
     ),
   );

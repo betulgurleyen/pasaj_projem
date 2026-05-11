@@ -7,6 +7,7 @@ import 'api_service.dart';
 import 'edit_product_screen.dart';
 import 'product_detail_screen.dart';
 import 'inbox_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -85,7 +86,22 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppStyles.primaryGreen,
         foregroundColor: Colors.white,
         actions: [
+          // Bildirim ikonu
+          const _NotificationBadge(),
+          // Sepet ikonu
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
+          ),
+          // Mesaj ikonu
           _UnreadBadge(currentUserId: currentUserId),
+          // Siparişlerim
+          IconButton(
+            icon: const Icon(Icons.receipt_long),
+            tooltip: 'Siparişlerim',
+            onPressed: () => Navigator.pushNamed(context, '/orders'),
+          ),
+          // Kategori filtresi
           PopupMenuButton<int?>(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Kategoriler',
@@ -95,188 +111,13 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: null,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.all_inclusive,
-                      color: _selectedCategoryId == null
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Hepsi',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == null
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == null
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 1,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.watch,
-                      color: _selectedCategoryId == 1
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Aksesuar',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == 1
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == 1
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 2,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.diamond,
-                      color: _selectedCategoryId == 2
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Doğal Taş',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == 2
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == 2
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 3,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.palette,
-                      color: _selectedCategoryId == 3
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Tasarım',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == 3
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == 3
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 4,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.checkroom,
-                      color: _selectedCategoryId == 4
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Giyim',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == 4
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == 4
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 5,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.home,
-                      color: _selectedCategoryId == 5
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Ev Dekorasyon',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == 5
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == 5
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 6,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.devices,
-                      color: _selectedCategoryId == 6
-                          ? AppStyles.accentPeach
-                          : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Elektronik',
-                      style: TextStyle(
-                        fontWeight: _selectedCategoryId == 6
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _selectedCategoryId == 6
-                            ? AppStyles.accentPeach
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _categoryMenuItem(null, Icons.all_inclusive, 'Hepsi'),
+              _categoryMenuItem(1, Icons.watch, 'Aksesuar'),
+              _categoryMenuItem(2, Icons.diamond, 'Doğal Taş'),
+              _categoryMenuItem(3, Icons.palette, 'Tasarım'),
+              _categoryMenuItem(4, Icons.checkroom, 'Giyim'),
+              _categoryMenuItem(5, Icons.home, 'Ev Dekorasyon'),
+              _categoryMenuItem(6, Icons.devices, 'Elektronik'),
             ],
           ),
           IconButton(
@@ -384,6 +225,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  PopupMenuItem<int?> _categoryMenuItem(
+    int? value,
+    IconData icon,
+    String label,
+  ) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: _selectedCategoryId == value
+                ? AppStyles.accentPeach
+                : Colors.grey,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: _selectedCategoryId == value
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+              color: _selectedCategoryId == value
+                  ? AppStyles.accentPeach
+                  : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProductCard(
     int id,
     String title,
@@ -457,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          if (role == 'seller')
+          if (role == 'seller' || role == 'admin')
             Positioned(
               top: 5,
               right: 5,
@@ -530,7 +404,76 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Okunmamış mesaj bildirimi ────────────────────────────────
+// ── Bildirim Badge ────────────────────────────────────────────
+
+class _NotificationBadge extends StatefulWidget {
+  const _NotificationBadge();
+
+  @override
+  State<_NotificationBadge> createState() => _NotificationBadgeState();
+}
+
+class _NotificationBadgeState extends State<_NotificationBadge> {
+  int _count = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCount();
+    _timer = Timer.periodic(const Duration(seconds: 15), (_) => _checkCount());
+  }
+
+  Future<void> _checkCount() async {
+    try {
+      final data = await ApiService.getUnreadCount();
+      if (mounted) setState(() => _count = data['count'] as int? ?? 0);
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+            );
+            _checkCount();
+          },
+        ),
+        if (_count > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: CircleAvatar(
+              radius: 9,
+              backgroundColor: Colors.red,
+              child: Text(
+                '$_count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Mesaj Badge ──────────────────────────────────────────────
 
 class _UnreadBadge extends StatefulWidget {
   final int currentUserId;

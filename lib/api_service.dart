@@ -214,4 +214,113 @@ class ApiService {
     );
     return jsonDecode(res.body);
   }
+
+  // ── CART ──────────────────────────────────────────
+
+  static Future<List<dynamic>> getCart() async {
+    final res = await http.get(Uri.parse('$baseUrl/cart'), headers: _headers);
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> addToCart(
+    int productId, {
+    int quantity = 1,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/cart'),
+      headers: _headers,
+      body: jsonEncode({'product_id': productId, 'quantity': quantity}),
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> updateCartItem(
+    int id,
+    int quantity,
+  ) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/cart/$id'),
+      headers: _headers,
+      body: jsonEncode({'quantity': quantity}),
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> removeFromCart(int id) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/cart/$id'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> clearCart() async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/cart'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  // ── ORDERS ──────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> createOrder(
+    Map<String, dynamic> data,
+  ) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/orders'),
+      headers: _headers,
+      body: jsonEncode(data),
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<List<dynamic>> getOrders() async {
+    final res = await http.get(Uri.parse('$baseUrl/orders'), headers: _headers);
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> updateOrderStatus(
+    int orderId,
+    String status,
+  ) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/orders/$orderId/status'),
+      headers: _headers,
+      body: jsonEncode({'status': status}),
+    );
+    return jsonDecode(res.body);
+  }
+
+  // ── NOTIFICATIONS ──────────────────────────────────────────
+
+  static Future<List<dynamic>> getNotifications() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/notifications'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<Map<String, dynamic>> getUnreadCount() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/notifications/unread-count'),
+      headers: _headers,
+    );
+    return jsonDecode(res.body);
+  }
+
+  static Future<void> markNotificationRead(int id) async {
+    await http.put(
+      Uri.parse('$baseUrl/notifications/$id/read'),
+      headers: _headers,
+    );
+  }
+
+  static Future<void> markAllNotificationsRead() async {
+    await http.put(
+      Uri.parse('$baseUrl/notifications/read-all'),
+      headers: _headers,
+    );
+  }
 }

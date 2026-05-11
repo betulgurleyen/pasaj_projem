@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'app_styles.dart';
+import 'api_service.dart';
 import 'chat_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
@@ -19,10 +20,7 @@ class ProductDetailScreen extends StatelessWidget {
     if (imageData is Uint8List) return imageData;
     if (imageData is String && imageData.isNotEmpty) {
       try {
-        // Önce direkt decode dene
-        final bytes = base64Decode(imageData);
-        // Eğer geçerli görsel formatı değilse tekrar decode et
-        return bytes;
+        return base64Decode(imageData);
       } catch (_) {
         return null;
       }
@@ -37,6 +35,9 @@ class ProductDetailScreen extends StatelessWidget {
     final String description =
         product['description']?.toString() ?? "Açıklama bulunmuyor.";
     final Uint8List? imageBytes = _decodeImage(product['image_data']);
+    final sellerId = product['seller_id'] as int?;
+    final sellerName = product['seller_name']?.toString() ?? 'Satıcı';
+    final bool isOwnProduct = sellerId == currentUserId;
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -81,6 +82,19 @@ class ProductDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  if (sellerName.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.store, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(
+                          sellerName,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   const Text(
                     "Ürün Açıklaması",
@@ -92,14 +106,68 @@ class ProductDetailScreen extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 30),
+
+                  // Sepete Ekle butonu (kendi ürününe ekleme)
+                  if (!isOwnProduct)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          try {
+                            final result = await ApiService.addToCart(
+                              product['id'] as int,
+                            );
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  result['message'] ?? result['error'] ?? '',
+                                ),
+                                backgroundColor: result.containsKey('error')
+                                    ? Colors.red
+                                    : Colors.green,
+                                action: result.containsKey('message')
+                                    ? SnackBarAction(
+                                        label: 'Sepete Git',
+                                        textColor: Colors.white,
+                                        onPressed: () => Navigator.pushNamed(
+                                          context,
+                                          '/cart',
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Hata: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.shopping_cart),
+                        label: const Text('Sepete Ekle'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppStyles.primaryGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 12),
+
+                  // Satıcıya Mesaj Gönder butonu
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        final sellerId = product['seller_id'] as int?;
-                        final sellerName =
-                            product['seller_name']?.toString() ?? 'Satıcı';
-
                         if (sellerId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -109,7 +177,7 @@ class ProductDetailScreen extends StatelessWidget {
                           return;
                         }
 
-                        if (sellerId == currentUserId) {
+                        if (isOwnProduct) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
