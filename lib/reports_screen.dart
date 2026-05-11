@@ -683,12 +683,12 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
 
         // Tablo
-        _loadingOrders
-            ? const Expanded(child: Center(child: CircularProgressIndicator()))
-            : _ordersData.isEmpty
-            ? const Expanded(child: Center(child: Text('Sipariş bulunamadı.')))
-            : Expanded(
-                child: SingleChildScrollView(
+        Expanded(
+          child: _loadingOrders
+              ? const Center(child: CircularProgressIndicator())
+              : _ordersData.isEmpty
+              ? const Center(child: Text('Sipariş bulunamadı.'))
+              : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SingleChildScrollView(
                     child: DataTable(
@@ -774,7 +774,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                     ),
                   ),
                 ),
-              ),
+        ),
       ],
     );
   }
